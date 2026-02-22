@@ -106,26 +106,52 @@
 
         // Login via API de Condutor
         async function autenticar() {
-            const cpf = document.getElementById('loginCPF').value;
-            const btn = document.getElementById('btnEntrar');
-            btn.innerText = "VERIFICANDO...";
+    // 1. Pega os valores e limpa pontuação (deixa apenas números)
+    const cpfInput = document.getElementById('loginCPF').value.replace(/\D/g, '');
+    const matriculaInput = document.getElementById('loginMatricula').value.trim();
+    const btn = document.getElementById('btnEntrar');
+    
+    if (!cpfInput || !matriculaInput) {
+        alert("Por favor, preencha o CPF e a Matrícula.");
+        return;
+    }
 
-            try {
-                const res = await fetch(`https://ws.sisatec.com.br/api/condutor/${CODIGO}/${API_KEY}`);
-                const condutores = await res.json();
-                const user = condutores.find(c => c.documento_condutor === cpf);
+    btn.innerText = "VERIFICANDO...";
+    btn.disabled = true;
 
-                if (user || cpf === "123") { // "123" para teste ADM
-                    document.getElementById('userDisplay').innerText = user ? user.nm_condutor : "Administrador";
-                    document.getElementById('loginPage').classList.add('hidden');
-                    document.getElementById('mainApp').classList.remove('hidden');
-                    carregarFrota();
-                } else {
-                    alert("CPF não encontrado.");
-                }
-            } catch (e) { alert("Erro ao conectar à API."); }
-            btn.innerText = "ENTRAR NO SISTEMA";
+    try {
+        const res = await fetch(`https://ws.sisatec.com.br/api/condutor/${CODIGO}/${API_KEY}`);
+        const condutores = await res.json();
+
+        // 2. Busca o condutor comparando apenas os números do CPF e a matrícula exata
+        const user = condutores.find(c => {
+            const cpfLimpoAPI = c.documento_condutor.replace(/\D/g, '');
+            const matriculaAPI = String(c.matricula_condutor).trim();
+            
+            return cpfLimpoAPI === cpfInput && matriculaAPI === matriculaInput;
+        });
+
+        if (user) {
+            // Sucesso no Login
+            document.getElementById('userDisplay').innerText = user.nm_condutor;
+            document.getElementById('loginPage').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('hidden');
+            
+            // Salva o CPF logado para filtrar os veículos depois, se necessário
+            localStorage.setItem('usuarioLogado', JSON.stringify(user));
+            
+            carregarFrota();
+        } else {
+            alert("Credenciais Inválidas! Verifique se o CPF e a Matrícula estão corretos.");
         }
+    } catch (e) {
+        console.error(e);
+        alert("Erro ao conectar à API da Sisatec. Verifique sua internet.");
+    } finally {
+        btn.innerText = "ENTRAR NO SISTEMA";
+        btn.disabled = false;
+    }
+}
 
         // Carregar Veículos Filtrando Unidades
         async function carregarFrota() {
@@ -191,3 +217,4 @@
     </script>
 </body>
 </html>
+
