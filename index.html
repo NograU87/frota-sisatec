@@ -99,123 +99,110 @@
         </div>
     </div>
 
-    <script>
-        const API_KEY = "8ABE0FF82F8FA2C89737C76F381D92380707BC9C";
-        const CODIGO = "7321";
-        let veiculoSelecionado = null;
+    // Configurações da API
+const CODIGO = "7321";
+const API_KEY = "8ABE0FF82F8FA2C89737C76F381D92380707BC9C";
 
-        // Login via API de Condutor
-        async function autenticar() {
-    // 1. Pega os valores e limpa pontuação (deixa apenas números)
+// Proxy gratuito para resolver o erro de "Sem Acesso / CORS"
+const PROXY = "https://corsproxy.io/?"; 
+const API_BASE = "https://ws.sisatec.com.br/api/";
+
+// Unidades que vamos filtrar
+const UNIDADES_ALVO = [
+    "SUZANO TRES LAGOAS-MS", 
+    "SUZANO TRÊS LAGOAS II-MS", 
+    "MANULIFE TRES LAGOAS-MS"
+];
+
+async function autenticar() {
     const cpfInput = document.getElementById('loginCPF').value.replace(/\D/g, '');
-    const matriculaInput = document.getElementById('loginMatricula').value.trim();
+    const matInput = document.getElementById('loginMatricula').value.trim();
     const btn = document.getElementById('btnEntrar');
-    
-    if (!cpfInput || !matriculaInput) {
-        alert("Por favor, preencha o CPF e a Matrícula.");
+
+    if (!cpfInput || !matInput) {
+        alert("Preencha CPF e Matrícula.");
         return;
     }
 
-    btn.innerText = "VERIFICANDO...";
+    btn.innerText = "CONECTANDO API...";
     btn.disabled = true;
 
     try {
-        const res = await fetch(`https://ws.sisatec.com.br/api/condutor/${CODIGO}/${API_KEY}`);
-        const condutores = await res.json();
+        // Chamada via Proxy para evitar o erro de acesso
+        const response = await fetch(PROXY + encodeURIComponent(`${API_BASE}condutor/${CODIGO}/${API_KEY}`));
+        const condutores = await response.json();
 
-        // 2. Busca o condutor comparando apenas os números do CPF e a matrícula exata
         const user = condutores.find(c => {
-            const cpfLimpoAPI = c.documento_condutor.replace(/\D/g, '');
-            const matriculaAPI = String(c.matricula_condutor).trim();
-            
-            return cpfLimpoAPI === cpfInput && matriculaAPI === matriculaInput;
+            const cpfAPI = c.documento_condutor.replace(/\D/g, '');
+            const matAPI = String(c.matricula_condutor).trim();
+            return cpfAPI === cpfInput && matAPI === matInput;
         });
 
         if (user) {
-            // Sucesso no Login
-            document.getElementById('userDisplay').innerText = user.nm_condutor;
             document.getElementById('loginPage').classList.add('hidden');
             document.getElementById('mainApp').classList.remove('hidden');
+            document.getElementById('userDisplay').innerText = user.nm_condutor;
             
-            // Salva o CPF logado para filtrar os veículos depois, se necessário
-            localStorage.setItem('usuarioLogado', JSON.stringify(user));
-            
+            // Carregar frota após login
             carregarFrota();
         } else {
-            alert("Credenciais Inválidas! Verifique se o CPF e a Matrícula estão corretos.");
+            alert("CPF ou Matrícula incorretos na Sisatec.");
         }
-    } catch (e) {
-        console.error(e);
-        alert("Erro ao conectar à API da Sisatec. Verifique sua internet.");
+    } catch (error) {
+        console.error(error);
+        alert("Erro de conexão. A API da Sisatec pode estar instável ou bloqueando o acesso direto.");
     } finally {
         btn.innerText = "ENTRAR NO SISTEMA";
         btn.disabled = false;
     }
 }
 
-        // Carregar Veículos Filtrando Unidades
-        async function carregarFrota() {
-            const res = await fetch(`https://ws.sisatec.com.br/api/veiculo/${CODIGO}/${API_KEY}`);
-            const frota = await res.json();
-            const unidadesAlvo = ["SUZANO TRES LAGOAS-MS", "SUZANO TRÊS LAGOAS II-MS", "MANULIFE TRES LAGOAS-MS"];
-            
-            const filtrados = frota.filter(v => unidadesAlvo.includes(v.nm_unidade));
-            const container = document.getElementById('appContent');
-            
-            container.innerHTML = filtrados.map(v => `
-                <div class="bg-white p-5 card-shadow border border-slate-100 active:scale-[0.98] transition-all" onclick="abrirDetalhes('${v.placa_veiculo}')">
-                    <div class="flex justify-between items-start mb-4">
-                        <div>
-                            <span class="text-[10px] font-black text-blue-500 bg-blue-50 px-2 py-0.5 rounded-md uppercase tracking-tighter">${v.nm_unidade}</span>
-                            <h3 class="text-2xl font-black text-slate-800 mt-1">${v.placa_veiculo}</h3>
-                            <p class="text-xs text-slate-400 font-bold uppercase italic">${v.mo_veiculo}</p>
-                        </div>
-                        <div class="text-right">
-                            <p class="text-[10px] text-slate-400 font-bold">SALDO RESTANTE</p>
-                            <p class="text-lg font-black text-green-500">R$ ${v.saldo_restante_veiculo}</p>
-                        </div>
+async function carregarFrota() {
+    const container = document.getElementById('appContent');
+    container.innerHTML = "<p class='text-center text-slate-400'>Buscando veículos...</p>";
+
+    try {
+        const response = await fetch(PROXY + encodeURIComponent(`${API_BASE}veiculo/${CODIGO}/${API_KEY}`));
+        const frota = await response.json();
+
+        // Filtra pelas unidades da Suzano e Manulife
+        const filtrados = frota.filter(v => UNIDADES_ALVO.includes(v.nm_unidade));
+
+        if (filtrados.length === 0) {
+            container.innerHTML = "<p class='text-center'>Nenhum veículo encontrado para estas unidades.</p>";
+            return;
+        }
+
+        document.getElementById('userUnidade').innerText = filtrados[0].nm_unidade;
+
+        container.innerHTML = filtrados.map(v => `
+            <div class="bg-white p-6 card-premium border border-slate-100 mb-4" onclick="abrirManutencao()">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h3 class="text-2xl font-black text-slate-800">${v.placa_veiculo}</h3>
+                        <p class="text-xs font-bold text-slate-400 uppercase">${v.mo_veiculo}</p>
                     </div>
-                    <div class="flex justify-between items-center pt-4 border-t border-dashed">
-                        <div class="flex items-center gap-1 text-slate-500">
-                            <span class="material-icons text-sm">speed</span>
-                            <span class="text-xs font-bold">${v.km_veiculo} KM</span>
-                        </div>
-                        <span class="material-icons text-slate-300">chevron_right</span>
+                    <span class="bg-green-100 text-green-600 px-2 py-1 rounded-lg text-[10px] font-bold uppercase">Ativo</span>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-slate-50 p-3 rounded-2xl">
+                        <p class="text-[9px] font-bold text-slate-400">SALDO</p>
+                        <p class="font-black text-blue-600">R$ ${v.saldo_restante_veiculo}</p>
+                    </div>
+                    <div class="bg-slate-50 p-3 rounded-2xl">
+                        <p class="text-[9px] font-bold text-slate-400">ODÔMETRO</p>
+                        <p class="font-black">${v.km_veiculo} KM</p>
                     </div>
                 </div>
-            `).join('');
-        }
+            </div>
+        `).join('');
 
-        function abrirManutencao() {
-            const d = document.getElementById('drawerManutencao');
-            d.classList.remove('hidden');
-            setTimeout(() => {
-                d.classList.add('opacity-100');
-                d.querySelector('.drawer').classList.add('active');
-            }, 10);
-        }
-
-        function fecharDrawer() {
-            const d = document.getElementById('drawerManutencao');
-            d.querySelector('.drawer').classList.remove('active');
-            d.classList.remove('opacity-100');
-            setTimeout(() => d.classList.add('hidden'), 300);
-        }
-
-        function mudarTab(tab) {
-            if(tab === 'manutencao') abrirManutencao();
-            // Outras abas podem ser implementadas aqui
-        }
-
-        function salvarManutencao() {
-            const area = document.querySelector('input[name="area"]:checked').value;
-            const desc = document.getElementById('descDefeito').value;
-            if(!desc) return alert("Descreva o problema.");
-            alert(`Solicitação de ${area} enviada com sucesso!`);
-            fecharDrawer();
-        }
-    </script>
+    } catch (error) {
+        container.innerHTML = "<p class='text-center text-red-500'>Erro ao carregar veículos.</p>";
+    }
+}
 </body>
 </html>
+
 
 
