@@ -3,206 +3,213 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sistema Frota Sisatec</title>
+    <title>Frota Sisatec Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
-        .glass { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); }
-        .card-shadow { border-radius: 24px; box-shadow: 0 8px 30px rgba(0,0,0,0.04); }
-        .drawer { transition: transform 0.3s ease-out; transform: translateY(100%); }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .glass { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); }
+        .drawer { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); transform: translateY(100%); }
         .drawer.active { transform: translateY(0); }
-        body { -webkit-tap-highlight-color: transparent; }
+        .card-neo { border-radius: 32px; background: #ffffff; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-900 overflow-x-hidden">
+<body class="bg-slate-50 text-slate-900">
 
     <div id="loginPage" class="fixed inset-0 z-[100] bg-white flex flex-col items-center justify-center p-8">
         <div class="w-full max-w-sm space-y-6 text-center">
-            <h1 class="text-4xl font-black text-blue-600 tracking-tighter">SISATEC <span class="text-slate-300">FROTA</span></h1>
-            <p class="text-slate-400 font-medium pb-4">Gestão de Unidades MS</p>
+            <h1 class="text-4xl font-black text-blue-600 tracking-tighter italic">SISATEC</h1>
+            <p class="text-slate-400 font-bold text-[10px] uppercase tracking-widest">Gestão de Frota e Manutenção</p>
             
-            <input type="text" id="loginCPF" placeholder="CPF (Login)" class="w-full p-4 bg-slate-100 rounded-2xl outline-none border-2 border-transparent focus:border-blue-500 transition-all">
-            <input type="password" id="loginMatricula" placeholder="Matrícula (Senha)" class="w-full p-4 bg-slate-100 rounded-2xl outline-none border-2 border-transparent focus:border-blue-500 transition-all">
-            
-            <button onclick="autenticar()" id="btnEntrar" class="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl shadow-xl shadow-blue-100 active:scale-95 transition-all">
+            <div class="space-y-3 pt-4">
+                <input type="text" id="loginCPF" placeholder="CPF (Ex: 010.428.861-21)" class="w-full p-5 bg-slate-100 rounded-3xl outline-none border-2 border-transparent focus:border-blue-500 transition-all">
+                <input type="password" id="loginMatricula" placeholder="Matrícula (Ex: 34391)" class="w-full p-5 bg-slate-100 rounded-3xl outline-none border-2 border-transparent focus:border-blue-500 transition-all">
+            </div>
+
+            <button onclick="autenticar()" id="btnEntrar" class="w-full bg-blue-600 text-white font-black py-5 rounded-3xl shadow-xl shadow-blue-100 active:scale-95 transition-all">
                 ENTRAR NO SISTEMA
             </button>
-            <p class="text-[10px] text-slate-400 uppercase tracking-widest">Acesso Restrito: Suzano & Manulife</p>
+            <p id="loginStatus" class="text-xs text-slate-400"></p>
         </div>
     </div>
 
-    <div id="mainApp" class="hidden">
-        
-        <header class="p-4 glass sticky top-0 z-40 border-b flex justify-between items-center">
+    <div id="mainApp" class="hidden min-h-screen">
+        <header class="p-5 glass sticky top-0 z-40 border-b flex justify-between items-center">
             <div>
-                <p class="text-[10px] font-bold text-slate-400 uppercase leading-none">Bem-vindo,</p>
-                <h2 id="userDisplay" class="font-bold text-slate-800">Motorista</h2>
+                <p id="displayUnidade" class="text-[10px] font-black text-blue-500 uppercase">Carregando Unidade...</p>
+                <h2 id="userName" class="font-black text-slate-800 text-lg">Olá, Motorista</h2>
             </div>
-            <button onclick="location.reload()" class="bg-slate-100 p-2 rounded-full text-slate-400"><span class="material-icons">logout</span></button>
+            <button onclick="location.reload()" class="bg-slate-100 p-3 rounded-2xl text-slate-400"><span class="material-icons">logout</span></button>
         </header>
 
-        <main id="appContent" class="p-4 space-y-6 pb-28">
-            </main>
+        <main id="appContent" class="p-5 space-y-6 pb-32">
+            <div class="flex flex-col items-center justify-center py-20 text-slate-300">
+                <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mb-4"></div>
+                <p class="font-bold text-sm">Buscando sua frota...</p>
+            </div>
+        </main>
 
-        <nav class="fixed bottom-0 inset-x-0 glass border-t p-4 flex justify-around items-center z-50">
-            <button onclick="mudarTab('veiculos')" id="tabV" class="flex flex-col items-center text-blue-600">
-                <span class="material-icons">directions_car</span>
-                <span class="text-[10px] font-bold">Veículos</span>
-            </button>
-            <button onclick="mudarTab('manutencao')" id="tabM" class="flex flex-col items-center text-slate-300">
-                <span class="material-icons">build_circle</span>
-                <span class="text-[10px] font-bold">Manutenção</span>
-            </button>
-            <button onclick="mudarTab('historico')" id="tabH" class="flex flex-col items-center text-slate-300">
-                <span class="material-icons">history</span>
-                <span class="text-[10px] font-bold">Histórico</span>
-            </button>
+        <nav class="fixed bottom-6 inset-x-6 glass border rounded-[32px] p-4 flex justify-around items-center shadow-2xl z-50">
+            <button onclick="mudarTab('frota')" class="flex flex-col items-center text-blue-600"><span class="material-icons">directions_car</span></button>
+            <button onclick="mudarTab('manutencao')" class="flex flex-col items-center text-slate-300"><span class="material-icons">build_circle</span></button>
+            <button onclick="mudarTab('perfil')" class="flex flex-col items-center text-slate-300"><span class="material-icons">insert_chart</span></button>
         </nav>
     </div>
 
-    <div id="drawerManutencao" class="fixed inset-0 z-[60] bg-black/40 hidden opacity-0 transition-opacity">
-        <div class="drawer absolute bottom-0 inset-x-0 bg-white rounded-t-[40px] p-8 max-h-[90vh] overflow-y-auto">
-            <div class="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-6"></div>
-            <h3 class="text-xl font-black mb-1">Solicitar Manutenção</h3>
-            <p class="text-slate-400 text-sm mb-6 italic">Indique onde está o defeito do veículo.</p>
+    <div id="drawerOverlay" class="fixed inset-0 bg-black/40 z-[60] hidden opacity-0 transition-opacity duration-300" onclick="fecharManutencao()">
+        <div id="drawer" class="drawer absolute bottom-0 inset-x-0 bg-white rounded-t-[48px] p-8" onclick="event.stopPropagation()">
+            <div class="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-8"></div>
+            <h3 class="text-2xl font-black mb-1">Nova Manutenção</h3>
+            <p class="text-slate-400 text-sm mb-8 font-medium">Selecione onde está o problema:</p>
             
-            <form id="formManut" class="space-y-4">
-                <div class="grid grid-cols-3 gap-3">
-                    <label class="text-center cursor-pointer">
-                        <input type="radio" name="area" value="Motor" class="hidden peer" checked>
-                        <div class="p-3 bg-slate-50 border rounded-2xl peer-checked:border-blue-500 peer-checked:bg-blue-50">
-                            <span class="material-icons text-slate-400 peer-checked:text-blue-600">settings</span>
-                            <p class="text-[10px] font-bold">Motor</p>
-                        </div>
-                    </label>
-                    <label class="text-center cursor-pointer">
-                        <input type="radio" name="area" value="Pneus" class="hidden peer">
-                        <div class="p-3 bg-slate-50 border rounded-2xl peer-checked:border-blue-500 peer-checked:bg-blue-50">
-                            <span class="material-icons text-slate-400">tire_repair</span>
-                            <p class="text-[10px] font-bold">Pneus</p>
-                        </div>
-                    </label>
-                    <label class="text-center cursor-pointer">
-                        <input type="radio" name="area" value="Elétrica" class="hidden peer">
-                        <div class="p-3 bg-slate-50 border rounded-2xl peer-checked:border-blue-500 peer-checked:bg-blue-50">
-                            <span class="material-icons text-slate-400">bolt</span>
-                            <p class="text-[10px] font-bold">Elétrica</p>
-                        </div>
-                    </label>
-                </div>
+            <div class="grid grid-cols-3 gap-4 mb-8">
+                <button onclick="selecionarArea('Motor')" class="area-btn flex flex-col items-center p-5 bg-slate-50 rounded-[32px] border-2 border-transparent transition-all">
+                    <span class="material-icons text-blue-600">settings</span>
+                    <span class="text-[10px] font-bold mt-2 uppercase">Motor</span>
+                </button>
+                <button onclick="selecionarArea('Pneus')" class="area-btn flex flex-col items-center p-5 bg-slate-50 rounded-[32px] border-2 border-transparent transition-all">
+                    <span class="material-icons text-slate-400">tire_repair</span>
+                    <span class="text-[10px] font-bold mt-2 uppercase">Pneus</span>
+                </button>
+                <button onclick="selecionarArea('Elétrica')" class="area-btn flex flex-col items-center p-5 bg-slate-50 rounded-[32px] border-2 border-transparent transition-all">
+                    <span class="material-icons text-yellow-500">bolt</span>
+                    <span class="text-[10px] font-bold mt-2 uppercase">Elétrica</span>
+                </button>
+            </div>
 
-                <textarea id="descDefeito" class="w-full bg-slate-100 p-4 rounded-2xl outline-none" rows="3" placeholder="Descreva o defeito aqui..."></textarea>
-                
-                <button type="button" onclick="salvarManutencao()" class="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl shadow-xl">ENVIAR SOLICITAÇÃO</button>
-                <button type="button" onclick="fecharDrawer()" class="w-full text-slate-400 text-sm font-bold py-2">CANCELAR</button>
-            </form>
+            <textarea id="descManut" class="w-full bg-slate-100 p-5 rounded-3xl outline-none mb-6 h-32 focus:ring-2 focus:ring-blue-500 transition-all" placeholder="Explique o defeito detalhadamente..."></textarea>
+            
+            <button onclick="enviarManutencao()" class="w-full bg-blue-600 text-white font-black py-5 rounded-[24px] shadow-xl shadow-blue-100">SOLICITAR REPARO</button>
         </div>
     </div>
 
-    // Configurações da API
-const CODIGO = "7321";
-const API_KEY = "8ABE0FF82F8FA2C89737C76F381D92380707BC9C";
+    <script>
+        // Configurações Técnicas
+        const CODIGO = "7321";
+        const API_KEY = "8ABE0FF82F8FA2C89737C76F381D92380707BC9C";
+        const PROXY = "https://corsproxy.io/?"; 
+        const API_BASE = "https://ws.sisatec.com.br/api/";
+        const UNIDADES = ["SUZANO TRES LAGOAS-MS", "SUZANO TRÊS LAGOAS II-MS", "MANULIFE TRES LAGOAS-MS"];
 
-// Proxy gratuito para resolver o erro de "Sem Acesso / CORS"
-const PROXY = "https://corsproxy.io/?"; 
-const API_BASE = "https://ws.sisatec.com.br/api/";
+        let areaSelecionada = "";
 
-// Unidades que vamos filtrar
-const UNIDADES_ALVO = [
-    "SUZANO TRES LAGOAS-MS", 
-    "SUZANO TRÊS LAGOAS II-MS", 
-    "MANULIFE TRES LAGOAS-MS"
-];
+        async function autenticar() {
+            const cpfInput = document.getElementById('loginCPF').value.replace(/\D/g, '');
+            const matInput = document.getElementById('loginMatricula').value.trim();
+            const btn = document.getElementById('btnEntrar');
+            const status = document.getElementById('loginStatus');
 
-async function autenticar() {
-    const cpfInput = document.getElementById('loginCPF').value.replace(/\D/g, '');
-    const matInput = document.getElementById('loginMatricula').value.trim();
-    const btn = document.getElementById('btnEntrar');
+            if (!cpfInput || !matInput) return alert("Preencha todos os campos.");
 
-    if (!cpfInput || !matInput) {
-        alert("Preencha CPF e Matrícula.");
-        return;
-    }
+            btn.innerText = "CONECTANDO SISATEC...";
+            btn.disabled = true;
 
-    btn.innerText = "CONECTANDO API...";
-    btn.disabled = true;
+            try {
+                const url = PROXY + encodeURIComponent(`${API_BASE}condutor/${CODIGO}/${API_KEY}`);
+                const response = await fetch(url);
+                const condutores = await response.json();
 
-    try {
-        // Chamada via Proxy para evitar o erro de acesso
-        const response = await fetch(PROXY + encodeURIComponent(`${API_BASE}condutor/${CODIGO}/${API_KEY}`));
-        const condutores = await response.json();
+                const user = condutores.find(c => {
+                    const cpfAPI = c.documento_condutor.replace(/\D/g, '');
+                    const matAPI = String(c.matricula_condutor).trim();
+                    return cpfAPI === cpfInput && matAPI === matInput;
+                });
 
-        const user = condutores.find(c => {
-            const cpfAPI = c.documento_condutor.replace(/\D/g, '');
-            const matAPI = String(c.matricula_condutor).trim();
-            return cpfAPI === cpfInput && matAPI === matInput;
-        });
+                if (user) {
+                    document.getElementById('loginPage').classList.add('hidden');
+                    document.getElementById('mainApp').classList.remove('hidden');
+                    document.getElementById('userName').innerText = `Olá, ${user.nm_condutor.split(' ')[0]}`;
+                    carregarFrota();
+                } else {
+                    alert("Dados não encontrados na unidade.");
+                }
+            } catch (e) {
+                alert("Erro de conexão. Tente novamente em instantes.");
+            } finally {
+                btn.innerText = "ENTRAR NO SISTEMA";
+                btn.disabled = false;
+            }
+        }
 
-        if (user) {
-            document.getElementById('loginPage').classList.add('hidden');
-            document.getElementById('mainApp').classList.remove('hidden');
-            document.getElementById('userDisplay').innerText = user.nm_condutor;
+        async function carregarFrota() {
+            const container = document.getElementById('appContent');
+            try {
+                const url = PROXY + encodeURIComponent(`${API_BASE}veiculo/${CODIGO}/${API_KEY}`);
+                const response = await fetch(url);
+                const frota = await response.json();
+
+                const filtrados = frota.filter(v => UNIDADES.includes(v.nm_unidade));
+                
+                if (filtrados.length > 0) {
+                    document.getElementById('displayUnidade').innerText = filtrados[0].nm_unidade;
+                }
+
+                container.innerHTML = filtrados.map(v => `
+                    <div class="bg-white p-6 card-neo border border-slate-100">
+                        <div class="flex justify-between items-start mb-6">
+                            <div>
+                                <h3 class="text-3xl font-black text-slate-800 tracking-tighter">${v.placa_veiculo}</h3>
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">${v.mo_veiculo}</p>
+                            </div>
+                            <div class="bg-green-100 text-green-600 px-3 py-1 rounded-full text-[10px] font-black uppercase">Ativo</div>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="bg-slate-50 p-4 rounded-[24px]">
+                                <p class="text-[9px] font-black text-slate-400 uppercase">Km Rodado</p>
+                                <p class="text-lg font-black">${v.km_veiculo}</p>
+                            </div>
+                            <div class="bg-slate-50 p-4 rounded-[24px]">
+                                <p class="text-[9px] font-black text-slate-400 uppercase">Saldo Disp.</p>
+                                <p class="text-lg font-black text-blue-600">R$ ${v.saldo_restante_veiculo}</p>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+
+            } catch (e) {
+                container.innerHTML = "<p class='text-center text-red-500 py-10'>Erro ao carregar frota.</p>";
+            }
+        }
+
+        function mudarTab(tab) {
+            if (tab === 'manutencao') {
+                const overlay = document.getElementById('drawerOverlay');
+                overlay.classList.remove('hidden');
+                setTimeout(() => {
+                    overlay.classList.add('opacity-100');
+                    document.getElementById('drawer').classList.add('active');
+                }, 10);
+            }
+        }
+
+        function fecharManutencao() {
+            const overlay = document.getElementById('drawerOverlay');
+            document.getElementById('drawer').classList.remove('active');
+            overlay.classList.remove('opacity-100');
+            setTimeout(() => overlay.classList.add('hidden'), 400);
+        }
+
+        function selecionarArea(area) {
+            areaSelecionada = area;
+            document.querySelectorAll('.area-btn').forEach(btn => {
+                btn.classList.remove('border-blue-500', 'bg-blue-50');
+                if (btn.innerText.includes(area.toUpperCase())) {
+                    btn.classList.add('border-blue-500', 'bg-blue-50');
+                }
+            });
+        }
+
+        function enviarManutencao() {
+            if (!areaSelecionada) return alert("Selecione a área do defeito.");
+            const desc = document.getElementById('descManut').value;
+            if (!desc) return alert("Descreva o problema.");
             
-            // Carregar frota após login
-            carregarFrota();
-        } else {
-            alert("CPF ou Matrícula incorretos na Sisatec.");
+            alert(`Solicitação de ${areaSelecionada} enviada para o administrador!`);
+            fecharManutencao();
+            document.getElementById('descManut').value = "";
         }
-    } catch (error) {
-        console.error(error);
-        alert("Erro de conexão. A API da Sisatec pode estar instável ou bloqueando o acesso direto.");
-    } finally {
-        btn.innerText = "ENTRAR NO SISTEMA";
-        btn.disabled = false;
-    }
-}
-
-async function carregarFrota() {
-    const container = document.getElementById('appContent');
-    container.innerHTML = "<p class='text-center text-slate-400'>Buscando veículos...</p>";
-
-    try {
-        const response = await fetch(PROXY + encodeURIComponent(`${API_BASE}veiculo/${CODIGO}/${API_KEY}`));
-        const frota = await response.json();
-
-        // Filtra pelas unidades da Suzano e Manulife
-        const filtrados = frota.filter(v => UNIDADES_ALVO.includes(v.nm_unidade));
-
-        if (filtrados.length === 0) {
-            container.innerHTML = "<p class='text-center'>Nenhum veículo encontrado para estas unidades.</p>";
-            return;
-        }
-
-        document.getElementById('userUnidade').innerText = filtrados[0].nm_unidade;
-
-        container.innerHTML = filtrados.map(v => `
-            <div class="bg-white p-6 card-premium border border-slate-100 mb-4" onclick="abrirManutencao()">
-                <div class="flex justify-between items-start mb-4">
-                    <div>
-                        <h3 class="text-2xl font-black text-slate-800">${v.placa_veiculo}</h3>
-                        <p class="text-xs font-bold text-slate-400 uppercase">${v.mo_veiculo}</p>
-                    </div>
-                    <span class="bg-green-100 text-green-600 px-2 py-1 rounded-lg text-[10px] font-bold uppercase">Ativo</span>
-                </div>
-                <div class="grid grid-cols-2 gap-3">
-                    <div class="bg-slate-50 p-3 rounded-2xl">
-                        <p class="text-[9px] font-bold text-slate-400">SALDO</p>
-                        <p class="font-black text-blue-600">R$ ${v.saldo_restante_veiculo}</p>
-                    </div>
-                    <div class="bg-slate-50 p-3 rounded-2xl">
-                        <p class="text-[9px] font-bold text-slate-400">ODÔMETRO</p>
-                        <p class="font-black">${v.km_veiculo} KM</p>
-                    </div>
-                </div>
-            </div>
-        `).join('');
-
-    } catch (error) {
-        container.innerHTML = "<p class='text-center text-red-500'>Erro ao carregar veículos.</p>";
-    }
-}
+    </script>
 </body>
 </html>
-
-
-
