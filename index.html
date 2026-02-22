@@ -9,7 +9,7 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
         body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
-        .glass { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); }
+        .glass { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(12px); }
         .drawer { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); transform: translateY(100%); }
         .drawer.active { transform: translateY(0); }
         .card-neo { border-radius: 32px; background: #ffffff; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); }
@@ -22,38 +22,37 @@
             <h1 class="text-4xl font-black text-blue-600 tracking-tighter italic">SISATEC</h1>
             <p class="text-slate-400 font-bold text-[10px] uppercase tracking-widest">Gestão de Frota e Manutenção</p>
             
-            <div class="space-y-3 pt-4">
-                <input type="text" id="loginCPF" placeholder="CPF (Ex: 010.428.861-21)" class="w-full p-5 bg-slate-100 rounded-3xl outline-none border-2 border-transparent focus:border-blue-500 transition-all">
-                <input type="password" id="loginMatricula" placeholder="Matrícula (Ex: 34391)" class="w-full p-5 bg-slate-100 rounded-3xl outline-none border-2 border-transparent focus:border-blue-500 transition-all">
+            <div class="space-y-3 pt-4 text-left">
+                <label class="text-[10px] font-black text-slate-400 ml-4 uppercase">CPF do Condutor</label>
+                <input type="text" id="loginCPF" placeholder="000.000.000-00" class="w-full p-5 bg-slate-100 rounded-3xl outline-none border-2 border-transparent focus:border-blue-500 transition-all mb-2">
+                
+                <label class="text-[10px] font-black text-slate-400 ml-4 uppercase">Registro (Matrícula)</label>
+                <input type="password" id="loginReg" placeholder="Ex: 34391" class="w-full p-5 bg-slate-100 rounded-3xl outline-none border-2 border-transparent focus:border-blue-500 transition-all">
             </div>
 
             <button onclick="autenticar()" id="btnEntrar" class="w-full bg-blue-600 text-white font-black py-5 rounded-3xl shadow-xl shadow-blue-100 active:scale-95 transition-all">
                 ENTRAR NO SISTEMA
             </button>
-            <p id="loginStatus" class="text-xs text-slate-400"></p>
+            <p id="loginStatus" class="text-[10px] font-bold text-red-500 uppercase mt-4"></p>
         </div>
     </div>
 
     <div id="mainApp" class="hidden min-h-screen">
         <header class="p-5 glass sticky top-0 z-40 border-b flex justify-between items-center">
             <div>
-                <p id="displayUnidade" class="text-[10px] font-black text-blue-500 uppercase">Carregando Unidade...</p>
+                <p id="displayUnidade" class="text-[10px] font-black text-blue-500 uppercase">Filtro Ativado</p>
                 <h2 id="userName" class="font-black text-slate-800 text-lg">Olá, Motorista</h2>
             </div>
             <button onclick="location.reload()" class="bg-slate-100 p-3 rounded-2xl text-slate-400"><span class="material-icons">logout</span></button>
         </header>
 
         <main id="appContent" class="p-5 space-y-6 pb-32">
-            <div class="flex flex-col items-center justify-center py-20 text-slate-300">
-                <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mb-4"></div>
-                <p class="font-bold text-sm">Buscando sua frota...</p>
-            </div>
-        </main>
+            </main>
 
         <nav class="fixed bottom-6 inset-x-6 glass border rounded-[32px] p-4 flex justify-around items-center shadow-2xl z-50">
-            <button onclick="mudarTab('frota')" class="flex flex-col items-center text-blue-600"><span class="material-icons">directions_car</span></button>
+            <button class="flex flex-col items-center text-blue-600"><span class="material-icons">directions_car</span></button>
             <button onclick="mudarTab('manutencao')" class="flex flex-col items-center text-slate-300"><span class="material-icons">build_circle</span></button>
-            <button onclick="mudarTab('perfil')" class="flex flex-col items-center text-slate-300"><span class="material-icons">insert_chart</span></button>
+            <button class="flex flex-col items-center text-slate-300"><span class="material-icons">insert_chart</span></button>
         </nav>
     </div>
 
@@ -61,71 +60,57 @@
         <div id="drawer" class="drawer absolute bottom-0 inset-x-0 bg-white rounded-t-[48px] p-8" onclick="event.stopPropagation()">
             <div class="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-8"></div>
             <h3 class="text-2xl font-black mb-1">Nova Manutenção</h3>
-            <p class="text-slate-400 text-sm mb-8 font-medium">Selecione onde está o problema:</p>
-            
-            <div class="grid grid-cols-3 gap-4 mb-8">
-                <button onclick="selecionarArea('Motor')" class="area-btn flex flex-col items-center p-5 bg-slate-50 rounded-[32px] border-2 border-transparent transition-all">
-                    <span class="material-icons text-blue-600">settings</span>
-                    <span class="text-[10px] font-bold mt-2 uppercase">Motor</span>
-                </button>
-                <button onclick="selecionarArea('Pneus')" class="area-btn flex flex-col items-center p-5 bg-slate-50 rounded-[32px] border-2 border-transparent transition-all">
-                    <span class="material-icons text-slate-400">tire_repair</span>
-                    <span class="text-[10px] font-bold mt-2 uppercase">Pneus</span>
-                </button>
-                <button onclick="selecionarArea('Elétrica')" class="area-btn flex flex-col items-center p-5 bg-slate-50 rounded-[32px] border-2 border-transparent transition-all">
-                    <span class="material-icons text-yellow-500">bolt</span>
-                    <span class="text-[10px] font-bold mt-2 uppercase">Elétrica</span>
-                </button>
-            </div>
-
             <textarea id="descManut" class="w-full bg-slate-100 p-5 rounded-3xl outline-none mb-6 h-32 focus:ring-2 focus:ring-blue-500 transition-all" placeholder="Explique o defeito detalhadamente..."></textarea>
-            
             <button onclick="enviarManutencao()" class="w-full bg-blue-600 text-white font-black py-5 rounded-[24px] shadow-xl shadow-blue-100">SOLICITAR REPARO</button>
         </div>
     </div>
 
     <script>
-        // Configurações Técnicas
+        // CONFIGURAÇÕES SISATEC
         const CODIGO = "7321";
         const API_KEY = "8ABE0FF82F8FA2C89737C76F381D92380707BC9C";
         const PROXY = "https://corsproxy.io/?"; 
         const API_BASE = "https://ws.sisatec.com.br/api/";
         const UNIDADES = ["SUZANO TRES LAGOAS-MS", "SUZANO TRÊS LAGOAS II-MS", "MANULIFE TRES LAGOAS-MS"];
 
-        let areaSelecionada = "";
-
         async function autenticar() {
-            const cpfInput = document.getElementById('loginCPF').value.replace(/\D/g, '');
-            const matInput = document.getElementById('loginMatricula').value.trim();
+            // Limpa o CPF digitado para comparar apenas números
+            const cpfDigitado = document.getElementById('loginCPF').value.replace(/\D/g, '');
+            const regDigitado = document.getElementById('loginReg').value.trim();
             const btn = document.getElementById('btnEntrar');
             const status = document.getElementById('loginStatus');
 
-            if (!cpfInput || !matInput) return alert("Preencha todos os campos.");
+            if (!cpfDigitado || !regDigitado) return alert("Preencha CPF e Matrícula.");
 
-            btn.innerText = "CONECTANDO SISATEC...";
+            btn.innerText = "CONECTANDO...";
             btn.disabled = true;
+            status.innerText = "";
 
             try {
+                // Busca a lista de condutores
                 const url = PROXY + encodeURIComponent(`${API_BASE}condutor/${CODIGO}/${API_KEY}`);
                 const response = await fetch(url);
                 const condutores = await response.json();
 
+                // CONFERÊNCIA: Procura pelo campo "cpf_condutor" e "reg_condutor"
                 const user = condutores.find(c => {
-                    const cpfAPI = c.documento_condutor.replace(/\D/g, '');
-                    const matAPI = String(c.matricula_condutor).trim();
-                    return cpfAPI === cpfInput && matAPI === matInput;
+                    const cpfAPI = String(c.cpf_condutor || "").replace(/\D/g, '');
+                    const regAPI = String(c.reg_condutor || "").trim();
+                    return cpfAPI === cpfDigitado && regAPI === regDigitado;
                 });
 
                 if (user) {
                     document.getElementById('loginPage').classList.add('hidden');
                     document.getElementById('mainApp').classList.remove('hidden');
-                    document.getElementById('userName').innerText = `Olá, ${user.nm_condutor.split(' ')[0]}`;
+                    document.getElementById('userName').innerText = `Olá, ${user.nm_condutor || 'Condutor'}`;
                     carregarFrota();
                 } else {
-                    alert("Dados não encontrados na unidade.");
+                    status.innerText = "ACESSO NEGADO: USUÁRIO NÃO ENCONTRADO";
+                    console.log("Tentativa com:", cpfDigitado, regDigitado);
                 }
             } catch (e) {
-                alert("Erro de conexão. Tente novamente em instantes.");
+                status.innerText = "ERRO DE CONEXÃO COM A API";
+                console.error(e);
             } finally {
                 btn.innerText = "ENTRAR NO SISTEMA";
                 btn.disabled = false;
@@ -154,22 +139,20 @@
                             </div>
                             <div class="bg-green-100 text-green-600 px-3 py-1 rounded-full text-[10px] font-black uppercase">Ativo</div>
                         </div>
-                        
                         <div class="grid grid-cols-2 gap-4">
                             <div class="bg-slate-50 p-4 rounded-[24px]">
-                                <p class="text-[9px] font-black text-slate-400 uppercase">Km Rodado</p>
+                                <p class="text-[9px] font-black text-slate-400 uppercase">Km Atual</p>
                                 <p class="text-lg font-black">${v.km_veiculo}</p>
                             </div>
                             <div class="bg-slate-50 p-4 rounded-[24px]">
-                                <p class="text-[9px] font-black text-slate-400 uppercase">Saldo Disp.</p>
+                                <p class="text-[9px] font-black text-slate-400 uppercase">Saldo</p>
                                 <p class="text-lg font-black text-blue-600">R$ ${v.saldo_restante_veiculo}</p>
                             </div>
                         </div>
                     </div>
                 `).join('');
-
             } catch (e) {
-                container.innerHTML = "<p class='text-center text-red-500 py-10'>Erro ao carregar frota.</p>";
+                container.innerHTML = "<p class='text-center text-red-500'>Erro ao carregar veículos.</p>";
             }
         }
 
@@ -191,24 +174,9 @@
             setTimeout(() => overlay.classList.add('hidden'), 400);
         }
 
-        function selecionarArea(area) {
-            areaSelecionada = area;
-            document.querySelectorAll('.area-btn').forEach(btn => {
-                btn.classList.remove('border-blue-500', 'bg-blue-50');
-                if (btn.innerText.includes(area.toUpperCase())) {
-                    btn.classList.add('border-blue-500', 'bg-blue-50');
-                }
-            });
-        }
-
         function enviarManutencao() {
-            if (!areaSelecionada) return alert("Selecione a área do defeito.");
-            const desc = document.getElementById('descManut').value;
-            if (!desc) return alert("Descreva o problema.");
-            
-            alert(`Solicitação de ${areaSelecionada} enviada para o administrador!`);
+            alert("Solicitação registrada com sucesso!");
             fecharManutencao();
-            document.getElementById('descManut').value = "";
         }
     </script>
 </body>
