@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Frota • Condutor</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 text-slate-900">
+  <header class="sticky top-0 bg-white/90 backdrop-blur border-b z-30">
+    <div class="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div>
+        <div class="text-sm text-slate-500">Módulo</div>
+        <div class="text-lg font-bold">Condutor • Entrada/Saída</div>
+      </div>
+      <button id="btnLogout" class="text-sm px-3 py-2 rounded-xl border">Sair</button>
+    </div>
+  </header>
+
+  <main class="max-w-3xl mx-auto p-4 pb-24 space-y-4">
+    <section class="bg-white rounded-2xl shadow p-4 space-y-3">
+      <h2 class="font-bold">Registrar movimentação</h2>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+        <div>
+          <label class="text-sm font-medium">Condutor</label>
+          <select id="selCondutor" class="w-full border rounded-xl p-3 text-sm"></select>
+        </div>
+        <div>
+          <label class="text-sm font-medium">Contrato</label>
+          <select id="selContrato" class="w-full border rounded-xl p-3 text-sm">
+            <option value="">Todos</option>
+            <option>SUZANO I</option>
+            <option>SUZANO II</option>
+            <option>MANULIFE</option>
+            <option>OUTROS</option>
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label class="text-sm font-medium">Placa</label>
+        <select id="selPlaca" class="w-full border rounded-xl p-3 text-sm"></select>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+        <div>
+          <label class="text-sm font-medium">KM Atual</label>
+          <input id="kmAtual" type="number" class="w-full border rounded-xl p-3 text-sm" placeholder="ex: 123456" />
+        </div>
+        <div>
+          <label class="text-sm font-medium">Foto do Odômetro</label>
+          <input id="fotoOdo" type="file" accept="image/*" capture="environment" class="w-full text-sm" />
+          <p class="text-xs text-slate-500 mt-1">No celular abre a câmera.</p>
+        </div>
+      </div>
+
+      <div class="flex gap-2 flex-wrap">
+        <button id="btnChecklist" class="px-3 py-2 rounded-xl border text-sm">Abrir Check-list</button>
+        <button id="btnSalvar" class="px-3 py-2 rounded-xl bg-slate-900 text-white text-sm font-semibold">Salvar</button>
+      </div>
+    </section>
+
+    <section class="bg-white rounded-2xl shadow p-4">
+      <div class="flex items-center justify-between">
+        <h2 class="font-bold">Minhas últimas movimentações</h2>
+        <button id="btnAtualizar" class="text-sm px-3 py-2 rounded-xl border">Atualizar</button>
+      </div>
+      <div id="listaMov" class="mt-3 space-y-2"></div>
+    </section>
+  </main>
+
+  <nav class="fixed bottom-0 left-0 right-0 bg-white border-t">
+    <div class="max-w-3xl mx-auto px-4 py-2 flex items-center justify-between text-sm">
+      <a class="px-3 py-2 rounded-xl" href="./adm.html">ADM</a>
+      <a class="px-3 py-2 rounded-xl bg-slate-900 text-white" href="./condutor.html">Condutor</a>
+      <a class="px-3 py-2 rounded-xl" href="./oficina.html">Oficina</a>
+    </div>
+  </nav>
+
+  <div id="modalChecklist" class="fixed inset-0 hidden items-end md:items-center justify-center bg-black/40 z-50">
+    <div class="w-full md:max-w-xl bg-white rounded-t-3xl md:rounded-3xl p-4 max-h-[85vh] overflow-auto">
+      <div class="flex items-center justify-between">
+        <h3 class="font-bold text-lg">Check-list do veículo</h3>
+        <button id="btnFecharChecklist" class="px-3 py-2 rounded-xl border text-sm">Fechar</button>
+      </div>
+
+      <div id="itensChecklist" class="mt-3 space-y-2"></div>
+
+      <div id="areaDefeito" class="mt-4 hidden">
+        <div class="p-3 rounded-2xl border bg-amber-50">
+          <div class="font-semibold">Defeito detectado</div>
+          <p class="text-sm text-slate-700">Descreva e tire foto. Isso abre uma OS.</p>
+
+          <label class="text-sm font-medium mt-2 block">Descrição do defeito</label>
+          <textarea id="descDefeito" class="w-full border rounded-xl p-3 text-sm" rows="3"></textarea>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
+            <div>
+              <label class="text-sm font-medium">Categoria</label>
+              <select id="catDefeito" class="w-full border rounded-xl p-3 text-sm">
+                <option>Mecânica</option>
+                <option>Elétrica</option>
+                <option>Pneus</option>
+                <option>Ar-condicionado</option>
+                <option>Outros</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-sm font-medium">Gravidade</label>
+              <select id="gravidade" class="w-full border rounded-xl p-3 text-sm">
+                <option>Baixa (Pode rodar)</option>
+                <option>Média (Agendar)</option>
+                <option>Alta (Veículo parado)</option>
+              </select>
+            </div>
+          </div>
+
+          <label class="text-sm font-medium mt-2 block">Foto do problema</label>
+          <input id="fotoDefeito" type="file" accept="image/*" capture="environment" class="w-full text-sm" />
+        </div>
+      </div>
+
+      <div class="mt-4 flex gap-2">
+        <button id="btnAplicarChecklist" class="flex-1 rounded-xl bg-slate-900 text-white p-3 text-sm font-semibold">
+          Aplicar Check-list
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { requireRole, logout } from "./js/auth.js";
+    import "./js/pages-condutor.js";
+    await requireRole("CONDUTOR");
+    document.getElementById("btnLogout").addEventListener("click", () => {
+      logout(); location.href = "./index.html";
+    });
+  </script>
+</body>
+</html>
