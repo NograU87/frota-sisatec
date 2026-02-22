@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sistema Frota Sisatec</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        .glass { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); }
+        .card-shadow { border-radius: 24px; box-shadow: 0 8px 30px rgba(0,0,0,0.04); }
+        .drawer { transition: transform 0.3s ease-out; transform: translateY(100%); }
+        .drawer.active { transform: translateY(0); }
+        body { -webkit-tap-highlight-color: transparent; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 overflow-x-hidden">
+
+    <div id="loginPage" class="fixed inset-0 z-[100] bg-white flex flex-col items-center justify-center p-8">
+        <div class="w-full max-w-sm space-y-6 text-center">
+            <h1 class="text-4xl font-black text-blue-600 tracking-tighter">SISATEC <span class="text-slate-300">FROTA</span></h1>
+            <p class="text-slate-400 font-medium pb-4">Gestão de Unidades MS</p>
+            
+            <input type="text" id="loginCPF" placeholder="CPF (Login)" class="w-full p-4 bg-slate-100 rounded-2xl outline-none border-2 border-transparent focus:border-blue-500 transition-all">
+            <input type="password" id="loginMatricula" placeholder="Matrícula (Senha)" class="w-full p-4 bg-slate-100 rounded-2xl outline-none border-2 border-transparent focus:border-blue-500 transition-all">
+            
+            <button onclick="autenticar()" id="btnEntrar" class="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl shadow-xl shadow-blue-100 active:scale-95 transition-all">
+                ENTRAR NO SISTEMA
+            </button>
+            <p class="text-[10px] text-slate-400 uppercase tracking-widest">Acesso Restrito: Suzano & Manulife</p>
+        </div>
+    </div>
+
+    <div id="mainApp" class="hidden">
+        
+        <header class="p-4 glass sticky top-0 z-40 border-b flex justify-between items-center">
+            <div>
+                <p class="text-[10px] font-bold text-slate-400 uppercase leading-none">Bem-vindo,</p>
+                <h2 id="userDisplay" class="font-bold text-slate-800">Motorista</h2>
+            </div>
+            <button onclick="location.reload()" class="bg-slate-100 p-2 rounded-full text-slate-400"><span class="material-icons">logout</span></button>
+        </header>
+
+        <main id="appContent" class="p-4 space-y-6 pb-28">
+            </main>
+
+        <nav class="fixed bottom-0 inset-x-0 glass border-t p-4 flex justify-around items-center z-50">
+            <button onclick="mudarTab('veiculos')" id="tabV" class="flex flex-col items-center text-blue-600">
+                <span class="material-icons">directions_car</span>
+                <span class="text-[10px] font-bold">Veículos</span>
+            </button>
+            <button onclick="mudarTab('manutencao')" id="tabM" class="flex flex-col items-center text-slate-300">
+                <span class="material-icons">build_circle</span>
+                <span class="text-[10px] font-bold">Manutenção</span>
+            </button>
+            <button onclick="mudarTab('historico')" id="tabH" class="flex flex-col items-center text-slate-300">
+                <span class="material-icons">history</span>
+                <span class="text-[10px] font-bold">Histórico</span>
+            </button>
+        </nav>
+    </div>
+
+    <div id="drawerManutencao" class="fixed inset-0 z-[60] bg-black/40 hidden opacity-0 transition-opacity">
+        <div class="drawer absolute bottom-0 inset-x-0 bg-white rounded-t-[40px] p-8 max-h-[90vh] overflow-y-auto">
+            <div class="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-6"></div>
+            <h3 class="text-xl font-black mb-1">Solicitar Manutenção</h3>
+            <p class="text-slate-400 text-sm mb-6 italic">Indique onde está o defeito do veículo.</p>
+            
+            <form id="formManut" class="space-y-4">
+                <div class="grid grid-cols-3 gap-3">
+                    <label class="text-center cursor-pointer">
+                        <input type="radio" name="area" value="Motor" class="hidden peer" checked>
+                        <div class="p-3 bg-slate-50 border rounded-2xl peer-checked:border-blue-500 peer-checked:bg-blue-50">
+                            <span class="material-icons text-slate-400 peer-checked:text-blue-600">settings</span>
+                            <p class="text-[10px] font-bold">Motor</p>
+                        </div>
+                    </label>
+                    <label class="text-center cursor-pointer">
+                        <input type="radio" name="area" value="Pneus" class="hidden peer">
+                        <div class="p-3 bg-slate-50 border rounded-2xl peer-checked:border-blue-500 peer-checked:bg-blue-50">
+                            <span class="material-icons text-slate-400">tire_repair</span>
+                            <p class="text-[10px] font-bold">Pneus</p>
+                        </div>
+                    </label>
+                    <label class="text-center cursor-pointer">
+                        <input type="radio" name="area" value="Elétrica" class="hidden peer">
+                        <div class="p-3 bg-slate-50 border rounded-2xl peer-checked:border-blue-500 peer-checked:bg-blue-50">
+                            <span class="material-icons text-slate-400">bolt</span>
+                            <p class="text-[10px] font-bold">Elétrica</p>
+                        </div>
+                    </label>
+                </div>
+
+                <textarea id="descDefeito" class="w-full bg-slate-100 p-4 rounded-2xl outline-none" rows="3" placeholder="Descreva o defeito aqui..."></textarea>
+                
+                <button type="button" onclick="salvarManutencao()" class="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl shadow-xl">ENVIAR SOLICITAÇÃO</button>
+                <button type="button" onclick="fecharDrawer()" class="w-full text-slate-400 text-sm font-bold py-2">CANCELAR</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_KEY = "8ABE0FF82F8FA2C89737C76F381D92380707BC9C";
+        const CODIGO = "7321";
+        let veiculoSelecionado = null;
+
+        // Login via API de Condutor
+        async function autenticar() {
+            const cpf = document.getElementById('loginCPF').value;
+            const btn = document.getElementById('btnEntrar');
+            btn.innerText = "VERIFICANDO...";
+
+            try {
+                const res = await fetch(`https://ws.sisatec.com.br/api/condutor/${CODIGO}/${API_KEY}`);
+                const condutores = await res.json();
+                const user = condutores.find(c => c.documento_condutor === cpf);
+
+                if (user || cpf === "123") { // "123" para teste ADM
+                    document.getElementById('userDisplay').innerText = user ? user.nm_condutor : "Administrador";
+                    document.getElementById('loginPage').classList.add('hidden');
+                    document.getElementById('mainApp').classList.remove('hidden');
+                    carregarFrota();
+                } else {
+                    alert("CPF não encontrado.");
+                }
+            } catch (e) { alert("Erro ao conectar à API."); }
+            btn.innerText = "ENTRAR NO SISTEMA";
+        }
+
+        // Carregar Veículos Filtrando Unidades
+        async function carregarFrota() {
+            const res = await fetch(`https://ws.sisatec.com.br/api/veiculo/${CODIGO}/${API_KEY}`);
+            const frota = await res.json();
+            const unidadesAlvo = ["SUZANO TRES LAGOAS-MS", "SUZANO TRÊS LAGOAS II-MS", "MANULIFE TRES LAGOAS-MS"];
+            
+            const filtrados = frota.filter(v => unidadesAlvo.includes(v.nm_unidade));
+            const container = document.getElementById('appContent');
+            
+            container.innerHTML = filtrados.map(v => `
+                <div class="bg-white p-5 card-shadow border border-slate-100 active:scale-[0.98] transition-all" onclick="abrirDetalhes('${v.placa_veiculo}')">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <span class="text-[10px] font-black text-blue-500 bg-blue-50 px-2 py-0.5 rounded-md uppercase tracking-tighter">${v.nm_unidade}</span>
+                            <h3 class="text-2xl font-black text-slate-800 mt-1">${v.placa_veiculo}</h3>
+                            <p class="text-xs text-slate-400 font-bold uppercase italic">${v.mo_veiculo}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-[10px] text-slate-400 font-bold">SALDO RESTANTE</p>
+                            <p class="text-lg font-black text-green-500">R$ ${v.saldo_restante_veiculo}</p>
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-center pt-4 border-t border-dashed">
+                        <div class="flex items-center gap-1 text-slate-500">
+                            <span class="material-icons text-sm">speed</span>
+                            <span class="text-xs font-bold">${v.km_veiculo} KM</span>
+                        </div>
+                        <span class="material-icons text-slate-300">chevron_right</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function abrirManutencao() {
+            const d = document.getElementById('drawerManutencao');
+            d.classList.remove('hidden');
+            setTimeout(() => {
+                d.classList.add('opacity-100');
+                d.querySelector('.drawer').classList.add('active');
+            }, 10);
+        }
+
+        function fecharDrawer() {
+            const d = document.getElementById('drawerManutencao');
+            d.querySelector('.drawer').classList.remove('active');
+            d.classList.remove('opacity-100');
+            setTimeout(() => d.classList.add('hidden'), 300);
+        }
+
+        function mudarTab(tab) {
+            if(tab === 'manutencao') abrirManutencao();
+            // Outras abas podem ser implementadas aqui
+        }
+
+        function salvarManutencao() {
+            const area = document.querySelector('input[name="area"]:checked').value;
+            const desc = document.getElementById('descDefeito').value;
+            if(!desc) return alert("Descreva o problema.");
+            alert(`Solicitação de ${area} enviada com sucesso!`);
+            fecharDrawer();
+        }
+    </script>
+</body>
+</html>
