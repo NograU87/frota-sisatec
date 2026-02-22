@@ -1,0 +1,16 @@
+frota-app/
+  index.html
+  adm.html
+  condutor.html
+  oficina.html
+  manifest.json
+  sw.js
+  js/
+    config.js
+    auth.js
+    api.js
+    storage.js
+    ui.js
+    pages-adm.js
+    pages-condutor.js
+    pages-oficina.js
